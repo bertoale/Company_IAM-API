@@ -9,15 +9,15 @@ import (
 )
 
 type clientData struct {
-	lastRequest time.Time
+	lastRequest  time.Time
 	requestCount int
 }
 
 type RateLimiter struct {
-	requests      int
-	window        time.Duration
-	clients       map[string]*clientData
-	mu            sync.Mutex
+	requests int
+	window   time.Duration
+	clients  map[string]*clientData
+	mu       sync.Mutex
 }
 
 func NewRateLimiter(requests int, window time.Duration) *RateLimiter {

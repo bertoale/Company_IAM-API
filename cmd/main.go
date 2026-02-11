@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	
+
 	cfg := config.LoadConfig()
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -84,9 +84,9 @@ func main() {
 	userService := user.NewService(userRepo)
 	userController := user.NewController(userService)
 	user.SetupRoutes(r, userController, cfg)
-	
+
 	authRepo := auth.NewRepository(db)
-	authService := auth.NewService(authRepo)
+	authService := auth.NewService(authRepo, cfg)
 	authController := auth.NewController(authService)
 	auth.SetupRoutes(r, authController, cfg)
 
@@ -120,12 +120,10 @@ func main() {
 	userApplicationController := user_application.NewController(userApplicationService)
 	user_application.SetupRoutes(r, userApplicationController, cfg)
 
-
 	// 404 Not Found
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "Route not found"})
 	})
-
 
 	// === Start Server ===
 	log.Printf("Server running on port %s", cfg.Port)
@@ -136,6 +134,4 @@ func main() {
 		log.Fatalf("Unable to start server: %v", err)
 	}
 
-
-	
 }

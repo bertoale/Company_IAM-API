@@ -11,7 +11,15 @@ type Controller struct {
 	service Service
 }
 
-func ParseID(c *gin.Context) (uint, error) {
+func ParseUserID(c *gin.Context) (uint, error) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return uint(id), nil
+}
+func ParseRoleID(c *gin.Context) (uint, error) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -35,16 +43,67 @@ func (ctrl *Controller) Create(c *gin.Context) {
 }
 
 func (ctrl *Controller) Delete(c *gin.Context) {
-	userRoleID, err := ParseID(c)
+	userID, err := ParseUserID(c)
 	if err != nil {
-		response.Error(c, 400, "Invalid User-Role ID")
+		response.Error(c, 400, "Invalid userID parameter")
 		return
 	}
-	if err := ctrl.service.Delete(userRoleID); err != nil {
-		response.Error(c, 500, "Failed to delete User-Role")
+
+	roleID, err := ParseRoleID(c)
+	if err != nil {
+		response.Error(c, 400, "Invalid roleID parameter")
 		return
 	}
+
+	err = ctrl.service.Delete(userID, roleID)
+	if err != nil {
+		response.Error(c, 500, "Failed to delete User-Role: "+err.Error())
+		return
+	}
+
 	response.Success(c, 200, "User-Role deleted successfully", nil)
+}
+
+func (ctrl *Controller) GetByUserID(c *gin.Context) {
+	id, err := ParseUserID(c)
+	if err != nil {
+		response.Error(c, 400, "Invalid ID parameter")
+		return
+	}
+	res, err := ctrl.service.GetByUserID(id)
+	if err != nil {
+		response.Error(c, 500, "Failed to get User-Roles by User ID: "+err.Error())
+		return
+	}
+	response.Success(c, 200, "User-Roles retrieved successfully", res)
+}
+
+func (ctrl *Controller) GetByRoleID(c *gin.Context) {
+	id, err := ParseRoleID(c)
+	if err != nil {
+		response.Error(c, 400, "Invalid ID parameter")
+		return
+	}
+	res, err := ctrl.service.GetByRoleID(id)
+	if err != nil {
+		response.Error(c, 500, "Failed to get User-Roles by Role ID: "+err.Error())
+		return
+	}
+	response.Success(c, 200, "User-Roles retrieved successfully", res)
+}
+
+func (ctrl *Controller) GetByUserIDWithRole(c *gin.Context) {
+	id, err := ParseUserID(c)
+	if err != nil {
+		response.Error(c, 400, "Invalid ID parameter")
+		return
+	}
+	res, err := ctrl.service.GetByUserIDWithRole(id)
+	if err != nil {
+		response.Error(c, 500, "Failed to get User-Roles with Role by User ID: "+err.Error())
+		return
+	}
+	response.Success(c, 200, "User-Roles with Role retrieved successfully", res)
 }
 
 func NewController(service Service) *Controller {

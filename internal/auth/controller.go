@@ -1,13 +1,16 @@
 package auth
 
 import (
+	"company_iam/pkg/config"
 	"company_iam/pkg/response"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Controller struct {
+	config  config.Config
 	service Service
 }
 
@@ -22,6 +25,15 @@ func (ctrl *Controller) Login(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "Login failed: "+err.Error())
 		return
 	}
+	c.SetCookie(
+		"token",
+		token,
+		int((7 * 24 * time.Hour).Seconds()),
+		"/",
+		"",
+		ctrl.config.NodeEnv == "production",
+		true,
+	)
 	response.Success(c, http.StatusOK, "Login successful", gin.H{
 		"token": token,
 		"user":  userRes,

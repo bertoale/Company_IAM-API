@@ -28,13 +28,13 @@ type User struct {
 type UserResponse struct {
 	ID         uint       `json:"id"`
 	Email      string     `json:"email"`
-	Name       string     `json:"name"`
+	Username   string     `json:"username"`
 	StatusEnum StatusEnum `json:"status"`
 }
 
 type UserRequest struct {
 	Email    string `json:"email"`
-	Username string `json:"name" `
+	Username string `json:"username" `
 	Password string `json:"password"`
 }
 

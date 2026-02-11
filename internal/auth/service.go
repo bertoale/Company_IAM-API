@@ -21,7 +21,7 @@ type service struct {
 }
 
 type Claims struct {
-	ID           uint     `json:"user_id"`
+	ID           uint     `json:"id"`
 	Roles        []string `json:"roles"`
 	Permissions  []string `json:"permissions"`
 	Applications []string `json:"applications"`
@@ -58,23 +58,23 @@ func (s *service) Login(req *LoginRequest) (string, *user.UserResponse, error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(userObj.Password), []byte(req.Password)); err != nil {
 		return "", nil, fmt.Errorf("invalid password: %w", err)
 	}
-	
+
 	// Ambil roles, permissions, dan applications
 	roles, err := s.repo.GetUserRoles(userObj.ID)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to get user roles: %w", err)
 	}
-	
+
 	permissions, err := s.repo.GetUserPermissions(userObj.ID)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to get user permissions: %w", err)
 	}
-	
+
 	applications, err := s.repo.GetUserApplications(userObj.ID)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to get user applications: %w", err)
 	}
-	
+
 	token, err := s.GenerateToken(userObj, roles, permissions, applications)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to generate token: %w", err)
@@ -82,6 +82,9 @@ func (s *service) Login(req *LoginRequest) (string, *user.UserResponse, error) {
 	return token, user.ToUserResponse(userObj), nil
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, cfg *config.Config) Service {
+	return &service{
+		repo: repo,
+		cfg:  *cfg,
+	}
 }

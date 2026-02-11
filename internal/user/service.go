@@ -1,6 +1,10 @@
 package user
 
-import "fmt"
+import (
+	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type Service interface {
 	CreateUser(req *UserRequest) (*UserResponse, error)
@@ -24,10 +28,14 @@ func (s *service) CreateUser(req *UserRequest) (*UserResponse, error) {
 	if existingUsername != nil {
 		return nil, fmt.Errorf("user with username '%s' already exists", req.Username)
 	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
 	newUser := &User{
 		Email:    req.Email,
 		Username: req.Username,
-		Password: req.Password,
+		Password: string(hashedPassword),
 	}
 	if err := s.repo.Create(newUser); err != nil {
 		return nil, err
