@@ -1,7 +1,5 @@
 package user_role
 
-import "company_iam/internal/role"
-
 func ToUserRoleResponse(userRole *UserRole) *UserRoleResponse {
 	return &UserRoleResponse{
 		UserID: userRole.UserID,
@@ -9,18 +7,44 @@ func ToUserRoleResponse(userRole *UserRole) *UserRoleResponse {
 	}
 }
 
-func ToUserRolesResponse(userID uint, userRoles []UserRole) *UserRoleWithRoleResponse {
-	roles := make([]role.RoleResponse, 0, len(userRoles))
-
-	for _, ur := range userRoles {
-		roles = append(roles, role.RoleResponse{
-			ID:   ur.Role.ID,
-			Name: ur.Role.Name,
-		})
+func ToRoleWithUsersResponse(roleID uint, userRoles []UserRole) *RoleWithUsersResponse {
+	var users []SimpleUserResponse
+	var roleName string
+	if len(userRoles) > 0 {
+		roleName = userRoles[0].Role.Name
 	}
+	for _, ur := range userRoles {
+		if ur.User.ID != 0 {
+			users = append(users, SimpleUserResponse{
+				ID:    ur.User.ID,
+				Email: ur.User.Email,
+			})
+		}
+	}
+	return &RoleWithUsersResponse{
+		ID:    roleID,
+		Name:  roleName,
+		Users: users,
+	}
+}
 
-	return &UserRoleWithRoleResponse{
-		UserID: userID,
-		Role:   roles,
+func ToUserWithRolesResponse(userID uint, userRoles []UserRole) *UserWithRolesResponse {
+	var roles []SimpleRoleResponse
+	var userName string
+	if len(userRoles) > 0 {
+		userName = userRoles[0].User.Username
+	}
+	for _, ur := range userRoles {
+		if ur.Role.ID != 0 {
+			roles = append(roles, SimpleRoleResponse{
+				ID:   ur.Role.ID,
+				Name: ur.Role.Name,
+			})
+		}
+	}
+	return &UserWithRolesResponse{
+		ID:    userID,
+		Name:  userName,
+		Roles: roles,
 	}
 }

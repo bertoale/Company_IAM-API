@@ -92,20 +92,6 @@ func (ctrl *Controller) GetByRoleID(c *gin.Context) {
 	response.Success(c, 200, "User-Roles retrieved successfully", res)
 }
 
-func (ctrl *Controller) GetByUserIDWithRole(c *gin.Context) {
-	id, err := ParseUserID(c)
-	if err != nil {
-		response.Error(c, 400, "Invalid ID parameter")
-		return
-	}
-	res, err := ctrl.service.GetByUserIDWithRole(id)
-	if err != nil {
-		response.Error(c, 500, "Failed to get User-Roles with Role by User ID: "+err.Error())
-		return
-	}
-	response.Success(c, 200, "User-Roles with Role retrieved successfully", res)
-}
-
 func NewController(service Service) *Controller {
 	return &Controller{service: service}
 }

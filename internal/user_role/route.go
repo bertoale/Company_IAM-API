@@ -19,6 +19,5 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config) {
 		)
 		routeGroup.GET("/user/:id", ctrl.GetByUserID)
 		routeGroup.GET("/role/:id", ctrl.GetByRoleID)
-		routeGroup.GET("/user/:id/roles", ctrl.GetByUserIDWithRole)
 	}
 }

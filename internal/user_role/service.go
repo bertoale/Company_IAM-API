@@ -5,9 +5,8 @@ import "fmt"
 type Service interface {
 	Create(req *UserRoleRequest) (*UserRoleResponse, error)
 	Delete(userID, roleID uint) error
-	GetByUserID(userID uint) ([]UserRoleResponse, error)
-	GetByRoleID(roleID uint) ([]UserRoleResponse, error)
-	GetByUserIDWithRole(userID uint) (*UserRoleWithRoleResponse, error)
+	GetByUserID(userID uint) (*UserWithRolesResponse, error)
+	GetByRoleID(roleID uint) (*RoleWithUsersResponse, error)
 }
 
 type service struct {
@@ -33,8 +32,9 @@ func (s *service) Create(req *UserRoleRequest) (*UserRoleResponse, error) {
 	}
 
 	if err := s.repo.Create(userRole); err != nil {
-		return nil, fmt.Errorf("failed to create user role: %w", err)
+		return nil,  fmt.Errorf("failed to create user role: %w", err)
 	}
+
 
 	return ToUserRoleResponse(userRole), nil
 }
@@ -45,38 +45,21 @@ func (s *service) Delete(userID, roleID uint) error {
 }
 
 // GetByRoleID implements [Service].
-func (s *service) GetByRoleID(roleID uint) ([]UserRoleResponse, error) {
-	var responses []UserRoleResponse
+func (s *service) GetByRoleID(roleID uint) (*RoleWithUsersResponse, error) {
 	userRoles, err := s.repo.FindByRoleID(roleID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user roles by role ID: %w", err)
 	}
-	for _, ur := range userRoles {
-		responses = append(responses, *ToUserRoleResponse(&ur))
-	}
-	return responses, nil
+	return ToRoleWithUsersResponse(roleID, userRoles), nil
 }
 
 // GetByUserID implements [Service].
-func (s *service) GetByUserID(userID uint) ([]UserRoleResponse, error) {
-	var responses []UserRoleResponse
+func (s *service) GetByUserID(userID uint) (*UserWithRolesResponse, error) {
 	userRoles, err := s.repo.FindByUserID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user roles by user ID: %w", err)
 	}
-	for _, ur := range userRoles {
-		responses = append(responses, *ToUserRoleResponse(&ur))
-	}
-	return responses, nil
-}
-
-// GetByUserIDWithRole implements [Service].
-func (s *service) GetByUserIDWithRole(userID uint) (*UserRoleWithRoleResponse, error) {
-	userRoles, err := s.repo.FindByUserIDWithRole(userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user roles with role by user ID: %w", err)
-	}
-	return ToUserRolesResponse(userID, userRoles), nil
+	return ToUserWithRolesResponse(userID, userRoles), nil
 }
 
 func NewService(repo Repository) Service {

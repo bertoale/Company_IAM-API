@@ -23,7 +23,24 @@ type UserRoleResponse struct {
 	RoleID uint `json:"role_id"`
 }
 
-type UserRoleWithRoleResponse struct {
-	UserID uint                `json:"user_id"`
-	Role   []role.RoleResponse `json:"role"`
+type SimpleUserResponse struct {
+	ID    uint   `json:"id"`
+	Email string `json:"email"`
+}
+
+type RoleWithUsersResponse struct {
+	ID    uint                `json:"id"`
+	Name  string              `json:"name"`
+	Users []SimpleUserResponse `json:"users"`
+}
+
+type SimpleRoleResponse struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+type UserWithRolesResponse struct {
+	ID    uint                `json:"id"`
+	Name  string              `json:"name"`
+	Roles []SimpleRoleResponse `json:"roles"`
 }

@@ -8,7 +8,6 @@ type Repository interface {
 	Exists(userID uint, roleID uint) (bool, error)
 	FindByUserID(userID uint) ([]UserRole, error)
 	FindByRoleID(roleID uint) ([]UserRole, error)
-	FindByUserIDWithRole(userID uint) ([]UserRole, error)
 }
 
 type repository struct {
@@ -40,6 +39,8 @@ func (r *repository) Exists(userID uint, roleID uint) (bool, error) {
 func (r *repository) FindByUserID(userID uint) ([]UserRole, error) {
 	var userRoles []UserRole
 	err := r.db.
+		Preload("User").
+		Preload("Role").
 		Where("user_id = ?", userID).
 		Find(&userRoles).
 		Error
@@ -50,6 +51,8 @@ func (r *repository) FindByUserID(userID uint) ([]UserRole, error) {
 func (r *repository) FindByRoleID(roleID uint) ([]UserRole, error) {
 	var userRoles []UserRole
 	err := r.db.
+		Preload("User").
+		Preload("Role").
 		Where("role_id = ?", roleID).
 		Find(&userRoles).
 		Error
@@ -57,16 +60,7 @@ func (r *repository) FindByRoleID(roleID uint) ([]UserRole, error) {
 	return userRoles, err
 }
 
-func (r *repository) FindByUserIDWithRole(userID uint) ([]UserRole, error) {
-	var userRoles []UserRole
-	err := r.db.
-		Preload("Role").
-		Where("user_id = ?", userID).
-		Find(&userRoles).
-		Error
 
-	return userRoles, err
-}
 
 func NewRepository(db *gorm.DB) Repository {
 	return &repository{db: db}
