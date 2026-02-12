@@ -1,9 +1,5 @@
 package role_permission
 
-import (
-	"company_iam/internal/permission"
-)
-
 func ToRolePermissionResponse(rp *RolePermission) *RolePermissionResponse {
 	return &RolePermissionResponse{
 		RoleID:       rp.RoleID,
@@ -11,18 +7,52 @@ func ToRolePermissionResponse(rp *RolePermission) *RolePermissionResponse {
 	}
 }
 
-func ToRolePermissionWithPermissionResponse(roleID uint,rolePermissions []RolePermission) *RolePermissionWithPermissionResponse {
-	permissions := make([]permission.PermissionResponse, 0, len(rolePermissions))
-
-	for _, r := range rolePermissions {
-		permissions = append(permissions, permission.PermissionResponse{
-			ID:   r.Permission.ID,
-			Code: r.Permission.Code,
-		})
+func ToPermissionWithRolesResponse(permissionID uint, rolePermissions []RolePermission) *PermissionWithRolesResponse {
+	var roles []SimpleRoleResponse
+	var permissionCode string
+	var permissionDescription string
+	if len(rolePermissions) > 0 {
+		permissionCode = rolePermissions[0].Permission.Code
+		permissionDescription = rolePermissions[0].Permission.Description
 	}
-	
-	return &RolePermissionWithPermissionResponse{
-		RoleID:     roleID,
-		Permission: permissions,
+	for _, rp := range rolePermissions {
+		if rp.Role.ID != 0 {
+			roles = append(roles, SimpleRoleResponse{
+				ID: rp.Role.ID,
+				Name: rp.Role.Name,
+				Description: rp.Role.Description,
+			})
+		}
+	}
+	return &PermissionWithRolesResponse{
+		ID:          permissionID,
+		Code:        permissionCode,
+		Description: permissionDescription,
+		Roles:       roles,
+	}
+}
+
+func ToRoleWithPermissionsResponse(roleID uint, rolePermissions []RolePermission) *RoleWithPermissionsResponse {
+	var permissions []SimplePermissionResponse
+	var roleName string
+	var roleDescription string
+	if len(rolePermissions) > 0 {
+		roleName = rolePermissions[0].Role.Name
+		roleDescription = rolePermissions[0].Role.Description
+	}
+	for _, rp := range rolePermissions {
+		if rp.Permission.ID != 0 {
+			permissions = append(permissions, SimplePermissionResponse{
+				ID: rp.Permission.ID,
+				Code: rp.Permission.Code,
+				Description: rp.Permission.Description,
+			})
+		}
+	}
+	return &RoleWithPermissionsResponse{
+		ID:          roleID,
+		Name:        roleName,
+		Description: roleDescription,
+		Permissions:  permissions,
 	}
 }

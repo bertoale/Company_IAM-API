@@ -13,7 +13,7 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config) {
 	{
 		routeGroup.POST("/", ctrl.Create)
 		routeGroup.DELETE(
-			"/users/:userID/roles/:roleID",
+			"/user/:userID/role/:roleID",
 
 			ctrl.Delete,
 		)

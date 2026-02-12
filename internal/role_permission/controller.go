@@ -13,7 +13,7 @@ type Controller struct {
 }
 
 func ParseRoleID(c *gin.Context) (uint, error) {
-	idParam := c.Param("id")
+	idParam := c.Param("roleID")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		return 0, err
@@ -21,13 +21,15 @@ func ParseRoleID(c *gin.Context) (uint, error) {
 	return uint(id), nil
 }
 func ParsePermissionID(c *gin.Context) (uint, error) {
-	idParam := c.Param("id")
+	idParam := c.Param("permissionID")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		return 0, err
 	}
 	return uint(id), nil
 }
+
+
 
 func (ctrl *Controller) CreateRolePermission(c *gin.Context) {
 	var req RolePermissionRequest
@@ -90,19 +92,7 @@ func (ctrl *Controller) FindByPermissionID(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Role permissions retrieved successfully", rolePermissions)
 }
 
-func (ctrl *Controller) FindByRoleIDWithPermission(c *gin.Context) {
-	roleID, err := ParseRoleID(c)
-	if err != nil {
-		response.Error(c, http.StatusBadRequest, "Invalid role ID")
-		return
-	}
-	rolePermissions, err := ctrl.service.FindByRoleIDWithPermission(roleID)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to get role permissions with permission by role ID")
-		return
-	}
-	response.Success(c, http.StatusOK, "Role permissions with permissions retrieved successfully", rolePermissions)
-}
+
 
 func NewController(service Service) *Controller {
 	return &Controller{service: service}

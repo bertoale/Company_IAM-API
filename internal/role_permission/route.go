@@ -11,13 +11,12 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config) {
 	{
 		routeGroup.POST("/", ctrl.CreateRolePermission)
 		routeGroup.DELETE(
-			"/roles/:roleID/permissions/:permissionID",
+			"/role/:roleID/permission/:permissionID",
 
 			ctrl.DeleteRolePermission,
 		)
-		routeGroup.GET("/roles/:id", ctrl.FindByRoleID)
-		routeGroup.GET("/permissions/:id", ctrl.FindByPermissionID)
-		routeGroup.GET("/roles/:id/permissions", ctrl.FindByRoleIDWithPermission)
+		routeGroup.GET("/role/:id", ctrl.FindByRoleID)
+		routeGroup.GET("/permission/:id", ctrl.FindByPermissionID)
 
 	}
 }

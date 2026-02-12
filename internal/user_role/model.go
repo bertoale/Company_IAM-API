@@ -26,6 +26,12 @@ type UserRoleResponse struct {
 type SimpleUserResponse struct {
 	ID    uint   `json:"id"`
 	Email string `json:"email"`
+	Username string `json:"username"`
+}
+
+type SimpleRoleResponse struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 type RoleWithUsersResponse struct {
@@ -34,13 +40,9 @@ type RoleWithUsersResponse struct {
 	Users []SimpleUserResponse `json:"users"`
 }
 
-type SimpleRoleResponse struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
 type UserWithRolesResponse struct {
 	ID    uint                `json:"id"`
-	Name  string              `json:"name"`
+	Email string              `json:"email"`
+	Username  string              `json:"username"`
 	Roles []SimpleRoleResponse `json:"roles"`
 }

@@ -7,13 +7,30 @@ import (
 type Service interface {
 	CreateRolePermission(req *RolePermissionRequest) (*RolePermissionResponse, error)
 	DeleteRolePermission(roleID uint, permissionID uint) error
-	FindByRoleID(roleID uint) ([]RolePermissionResponse, error)
-	FindByPermissionID(permissionID uint) ([]RolePermissionResponse, error)
-	FindByRoleIDWithPermission(roleID uint) (*RolePermissionWithPermissionResponse, error)
+	FindByRoleID(roleID uint) (*RoleWithPermissionsResponse, error)
+	FindByPermissionID(permissionID uint) (*PermissionWithRolesResponse, error)
 }
 
 type service struct {
 	repo Repository
+}
+
+// FindByPermissionID implements [Service].
+func (s *service) FindByPermissionID(permissionID uint) (*PermissionWithRolesResponse, error) {
+	rolePermission, err := s.repo.FindByPermissionID(permissionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get role permissions by permission ID: %w", err)
+	}
+	return ToPermissionWithRolesResponse(permissionID, rolePermission), nil
+}
+
+// FindByRoleID implements [Service].
+func (s *service) FindByRoleID(roleID uint) (*RoleWithPermissionsResponse, error) {
+	rolePermission, err := s.repo.FindByRoleID(roleID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get role permissions by role ID: %w", err)
+	}
+	return ToRoleWithPermissionsResponse(roleID, rolePermission), nil
 }
 
 // CreateRolePermission implements [Service].
@@ -38,44 +55,15 @@ func (s *service) CreateRolePermission(req *RolePermissionRequest) (*RolePermiss
 
 // DeleteRolePermission implements [Service].
 func (s *service) DeleteRolePermission(roleID uint, permissionID uint) error {
-	return s.repo.Delete(roleID, permissionID)
-}
-
-// FindByPermissionID implements [Service].
-func (s *service) FindByPermissionID(permissionID uint) ([]RolePermissionResponse, error) {
-	var responses []RolePermissionResponse
-	rolePermissions, err := s.repo.FindByPermissionID(permissionID)
+	RowsAffected, err := s.repo.Delete(roleID, permissionID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get role permissions by permission ID: %w", err)
+		return fmt.Errorf("failed to delete role permission: %w", err)
 	}
-	for _, rp := range rolePermissions {
-		responses = append(responses, *ToRolePermissionResponse(&rp))
+	if RowsAffected == 0 {
+		return fmt.Errorf("role permission not found")
 	}
-	return responses, nil
+	return nil
 }
-
-// FindByRoleID implements [Service].
-func (s *service) FindByRoleID(roleID uint) ([]RolePermissionResponse, error) {
-	var responses []RolePermissionResponse
-	rolePermissions, err := s.repo.FindByRoleID(roleID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get role permissions by role ID: %w", err)
-	}
-	for _, rp := range rolePermissions {
-		responses = append(responses, *ToRolePermissionResponse(&rp))
-	}
-	return responses, nil
-}
-
-// FindByRoleIDWithPermission implements [Service].
-func (s *service) FindByRoleIDWithPermission(roleID uint) (*RolePermissionWithPermissionResponse, error) {
-	rolePermissions, err := s.repo.FindByRoleIDWithPermission(roleID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get role permissions with permission by role ID: %w", err)
-	}
-	return ToRolePermissionWithPermissionResponse(roleID, rolePermissions), nil
-}
-
 
 func NewService(repo Repository) Service {
 	return &service{repo: repo}

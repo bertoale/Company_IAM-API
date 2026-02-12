@@ -1,17 +1,16 @@
 package user_application
 
 import (
-	"company_iam/internal/role"
+	"company_iam/internal/application"
 	"company_iam/internal/user"
 )
 
 type UserApplication struct {
-	ID            uint `gorm:"primaryKey;autoIncrement"`
-	UserID        uint `gorm:"not null"`
-	ApplicationID uint `gorm:"not null"`
+	UserID        uint `gorm:"primaryKey"`
+	ApplicationID uint `gorm:"primaryKey"`
 	//relations
-	User        user.User `gorm:"foreignKey:UserID"`
-	Application role.Role `gorm:"foreignKey:ApplicationID"`
+	User        user.User              `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Application application.Application `gorm:"foreignKey:ApplicationID;constraint:OnDelete:CASCADE"`
 }
 
 type UserApplicationRequest struct {
@@ -20,7 +19,32 @@ type UserApplicationRequest struct {
 }
 
 type UserApplicationResponse struct {
-	ID            uint `json:"id"`
 	UserID        uint `json:"user_id"`
 	ApplicationID uint `json:"application_id"`
+}
+
+type SimpleUserResponse struct {
+	ID    uint   `json:"id"`
+	Email string `json:"email"`
+	Username string `json:"username"`
+}
+
+type SimpleApplicationResponse struct {
+	ID   uint   `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+type ApplicationWithUsersResponse struct {
+	ID    uint                `json:"id"`
+	Code  string              `json:"code"`
+	Name  string              `json:"name"`
+	Users []SimpleUserResponse `json:"users"`
+}
+
+type UserWithApplicationsResponse struct {
+	ID        uint                      `json:"id"`
+	Email     string                    `json:"email"`
+	Username  string                    `json:"username"`
+	Applications []SimpleApplicationResponse `json:"applications"`
 }

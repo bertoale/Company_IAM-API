@@ -4,11 +4,10 @@ import "gorm.io/gorm"
 
 type Repository interface {
 	Create(rolePermission *RolePermission) error
-	Delete(roleID uint, permissionID uint) error
+	Delete(roleID uint, permissionID uint) (int64, error)
 	Exists(roleID uint, permissionID uint) (bool, error)
 	FindByRoleID(roleID uint) ([]RolePermission, error)
 	FindByPermissionID(permissionID uint) ([]RolePermission, error)
-	FindByRoleIDWithPermission(roleID uint) ([]RolePermission, error)
 }
 
 type repository struct {
@@ -21,11 +20,12 @@ func (r *repository) Create(rolePermission *RolePermission) error {
 }
 
 // Delete implements [Repository].
-func (r *repository) Delete(roleID uint, permissionID uint) error {
-	return r.db.
+func (r *repository) Delete(roleID uint, permissionID uint) (int64, error) {
+	result := r.db.
 		Where("role_id = ? AND permission_id = ?", roleID, permissionID).
-		Delete(&RolePermission{}).
-		Error
+		Delete(&RolePermission{})
+		return result.RowsAffected, result.Error
+
 }
 
 // Exists implements [Repository].
@@ -44,6 +44,8 @@ func (r *repository) Exists(roleID uint, permissionID uint) (bool, error) {
 func (r *repository) FindByPermissionID(permissionID uint) ([]RolePermission, error) {
 	var rolePermissions []RolePermission
 	err := r.db.
+		Preload("Role").
+		Preload("Permission").
 		Where("permission_id = ?", permissionID).
 		Find(&rolePermissions).
 		Error
@@ -55,17 +57,7 @@ func (r *repository) FindByPermissionID(permissionID uint) ([]RolePermission, er
 func (r *repository) FindByRoleID(roleID uint) ([]RolePermission, error) {
 	var rolePermissions []RolePermission
 	err := r.db.
-		Where("role_id = ?", roleID).
-		Find(&rolePermissions).
-		Error
-
-	return rolePermissions, err
-}
-
-// FindByRoleIDWithPermission implements [Repository].
-func (r *repository) FindByRoleIDWithPermission(roleID uint) ([]RolePermission, error) {
-	var rolePermissions []RolePermission
-	err := r.db.
+		Preload("Role").
 		Preload("Permission").
 		Where("role_id = ?", roleID).
 		Find(&rolePermissions).

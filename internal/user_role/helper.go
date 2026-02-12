@@ -18,6 +18,7 @@ func ToRoleWithUsersResponse(roleID uint, userRoles []UserRole) *RoleWithUsersRe
 			users = append(users, SimpleUserResponse{
 				ID:    ur.User.ID,
 				Email: ur.User.Email,
+				Username: ur.User.Username,
 			})
 		}
 	}
@@ -30,8 +31,10 @@ func ToRoleWithUsersResponse(roleID uint, userRoles []UserRole) *RoleWithUsersRe
 
 func ToUserWithRolesResponse(userID uint, userRoles []UserRole) *UserWithRolesResponse {
 	var roles []SimpleRoleResponse
+	var userEmail string
 	var userName string
 	if len(userRoles) > 0 {
+		userEmail = userRoles[0].User.Email
 		userName = userRoles[0].User.Username
 	}
 	for _, ur := range userRoles {
@@ -44,7 +47,8 @@ func ToUserWithRolesResponse(userID uint, userRoles []UserRole) *UserWithRolesRe
 	}
 	return &UserWithRolesResponse{
 		ID:    userID,
-		Name:  userName,
+		Email: userEmail,
+		Username:  userName,
 		Roles: roles,
 	}
 }
