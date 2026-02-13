@@ -17,10 +17,12 @@ type Config struct {
 	DBUser     string // Database user
 	DBPassword string // Database password
 	DBName     string // Database name
-	DBSSLMode  string // Database SSL mode (disable/require/verify-ca/verify-full)
-	JWTSecret  string // Secret key untuk signing JWT tokens
-	JWTExpires string // JWT expiration duration (contoh: 168h = 7 hari)
-	Port       string // Port untuk aplikasi web server
+	DBSSLMode           string // Database SSL mode (disable/require/verify-ca/verify-full)
+	JWTSecret           string // Secret key untuk signing JWT tokens
+	JWTExpires          string // JWT expiration duration (contoh: 168h = 7 hari)
+	RefreshTokenSecret  string // Secret key untuk signing refresh tokens
+	RefreshTokenExpires string // Refresh token expiration duration (contoh: 168h = 7 hari)
+	Port                string // Port untuk aplikasi web server
 	NodeEnv    string // Environment mode (development/production)
 	CorsOrigin string // Allowed CORS origin (URL frontend)
 
@@ -49,14 +51,16 @@ func LoadConfig() *Config {
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "5432"),
 		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", "post_db"),
-		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:  getEnv("JWT_SECRET", "your_super_secret_jwt_key_post_app_2025"),
-		JWTExpires: getEnv("JWT_EXPIRES_IN", "168h"),
-		Port:       getEnv("PORT", "5000"),
-		NodeEnv:    getEnv("NODE_ENV", "development"),
-		CorsOrigin: getEnv("CORS_ORIGIN", "http://localhost:3000"),
+		DBPassword:          getEnv("DB_PASSWORD", ""),
+		DBName:              getEnv("DB_NAME", "post_db"),
+		DBSSLMode:           getEnv("DB_SSLMODE", "disable"),
+		JWTSecret:           getEnv("JWT_SECRET", "your_super_secret_jwt_key_post_app_2025"),
+		JWTExpires:          getEnv("JWT_EXPIRES_IN", "168h"),
+		RefreshTokenSecret:  getEnv("REFRESH_TOKEN_SECRET", "your_super_secret_refresh_token_key_post_app_2025"),
+		RefreshTokenExpires: getEnv("REFRESH_TOKEN_EXPIRES_IN", "168h"),
+		Port:                getEnv("PORT", "5000"),
+		NodeEnv:             getEnv("NODE_ENV", "development"),
+		CorsOrigin:          getEnv("CORS_ORIGIN", "http://localhost:3000"),
 
 		// Mailjet configuration
 		MailjetAPIKey:    getEnv("MAILJET_API_KEY", ""),

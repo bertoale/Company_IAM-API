@@ -87,7 +87,7 @@ func main() {
 
 	authRepo := auth.NewRepository(db)
 	authService := auth.NewService(authRepo, cfg)
-	authController := auth.NewController(authService)
+	authController := auth.NewController(authService, cfg)
 	auth.SetupRoutes(r, authController, cfg)
 
 	roleRepo := role.NewRepository(db)

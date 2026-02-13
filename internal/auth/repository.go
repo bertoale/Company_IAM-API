@@ -8,6 +8,7 @@ import (
 
 type Repository interface {
 	GetUserByIdentifier(identifier string) (*user.User, error)
+	GetUserByID(userID uint) (*user.User, error)
 	GetUserRoles(userID uint) ([]string, error)
 	GetUserPermissions(userID uint) ([]string, error)
 	GetUserApplications(userID uint) ([]string, error)
@@ -23,6 +24,15 @@ func (r *repository) GetUserByIdentifier(identifier string) (*user.User, error) 
 	if err := r.db.
 		Where("email = ? OR username = ?", identifier, identifier).
 		First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetUserByID implements [Repository].
+func (r *repository) GetUserByID(userID uint) (*user.User, error) {
+	var user user.User
+	if err := r.db.First(&user, userID).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -61,7 +71,6 @@ func (r *repository) GetUserApplications(userID uint) ([]string, error) {
 		Pluck("applications.code", &applications).Error
 	return applications, err
 }
-
 
 func NewRepository(db *gorm.DB) Repository {
 	return &repository{db: db}
