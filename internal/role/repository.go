@@ -8,7 +8,7 @@ type Repository interface {
 	FindByName(name string) (*Role, error)
 	FindAll() ([]Role, error)
 	Update(role *Role) error
-	Delete(id uint) error
+	Delete(id uint) (int64, error)
 }
 
 type repository struct {
@@ -21,8 +21,9 @@ func (r *repository) Create(role *Role) error {
 }
 
 // Delete implements [Repository].
-func (r *repository) Delete(id uint) error {
-	return r.db.Delete(&Role{}, id).Error
+func (r *repository) Delete(id uint) (int64, error) {
+	result := r.db.Delete(&Role{}, id)
+	return result.RowsAffected, result.Error
 }
 
 // GetAll implements [Repository].

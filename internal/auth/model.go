@@ -10,3 +10,4 @@ type LoginResponse struct {
 	Identifier string `json:"email"`
 	Token      string `json:"token"`
 }
+

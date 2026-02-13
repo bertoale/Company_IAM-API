@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Repository interface {
 	Create(userRole *UserRole) error
-	Delete(userID uint, roleID uint) error
+	Delete(userID uint, roleID uint) (int64, error)
 	Exists(userID uint, roleID uint) (bool, error)
 	FindByUserID(userID uint) ([]UserRole, error)
 	FindByRoleID(roleID uint) ([]UserRole, error)
@@ -18,11 +18,11 @@ func (r *repository) Create(userRole *UserRole) error {
 	return r.db.Create(userRole).Error
 }
 
-func (r *repository) Delete(userID uint, roleID uint) error {
-	return r.db.
+func (r *repository) Delete(userID uint, roleID uint) (int64, error) {
+	result := r.db.
 		Where("user_id = ? AND role_id = ?", userID, roleID).
-		Delete(&UserRole{}).
-		Error
+		Delete(&UserRole{})
+	return result.RowsAffected, result.Error
 }
 
 func (r *repository) Exists(userID uint, roleID uint) (bool, error) {

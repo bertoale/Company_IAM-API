@@ -15,6 +15,6 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config) {
 		routeGroup.GET("/", middlewares.AuthorizePermission("iam.user.read"), ctrl.GetAllUsers)
 		routeGroup.GET("/:id", middlewares.AuthorizePermission("iam.user.read"), ctrl.GetUserByID)
 		routeGroup.PUT("/:id", middlewares.AuthorizePermission("iam.user.update"), ctrl.UpdateUser)
-		routeGroup.DELETE("/:id", middlewares.AuthorizePermission("iam.user.delete"), ctrl.DeleteUser)
+		routeGroup.DELETE("/:id",middlewares.AuthorizePermission("iam.user.delete"), ctrl.DeleteUser)
 	}
 }

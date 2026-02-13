@@ -33,9 +33,12 @@ func (s *service) CreateRole(req *RoleRequest) (*RoleResponse, error) {
 
 // DeleteRole implements [Service].
 func (s *service) DeleteRole(id uint) error {
-	err := s.repo.Delete(id)
+	rowsAffected, err := s.repo.Delete(id)
 	if err != nil {
-		return fmt.Errorf("failed to delete role with ID %d: %w", id, err)
+		return fmt.Errorf("failed to delete role with id '%d': %w", id, err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("role with id '%d' not found", id)
 	}
 	return nil
 }

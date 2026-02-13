@@ -9,7 +9,7 @@ type Repository interface {
 	FindByUsername(username string) (*User, error)
 	FindAll() ([]User, error)
 	Update(user *User) error
-	Delete(user *User) error
+	Delete(user *User) (int64, error)
 }
 
 type repository struct {
@@ -22,8 +22,9 @@ func (r *repository) Create(user *User) error {
 }
 
 // Delete implements [Repository].
-func (r *repository) Delete(user *User) error {
-	return r.db.Delete(user).Error
+func (r *repository) Delete(user *User) (int64, error) {
+	result := r.db.Delete(user)
+	return result.RowsAffected, result.Error
 }
 
 // FindAll implements [Repository].

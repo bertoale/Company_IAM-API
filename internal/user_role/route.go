@@ -14,10 +14,14 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config) {
 		routeGroup.POST("/", ctrl.Create)
 		routeGroup.DELETE(
 			"/user/:userID/role/:roleID",
-
+			middlewares.AuthorizePermission("iam.user-role.delete"),
 			ctrl.Delete,
 		)
-		routeGroup.GET("/user/:id", ctrl.GetByUserID)
-		routeGroup.GET("/role/:id", ctrl.GetByRoleID)
+		routeGroup.GET("/user/:id",
+		middlewares.AuthorizePermission("iam.user-role.read"),
+		ctrl.GetByUserID)
+		routeGroup.GET("/role/:id",
+		middlewares.AuthorizePermission("iam.user-role.read"),
+		ctrl.GetByRoleID)
 	}
 }

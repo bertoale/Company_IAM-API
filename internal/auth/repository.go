@@ -62,6 +62,7 @@ func (r *repository) GetUserApplications(userID uint) ([]string, error) {
 	return applications, err
 }
 
+
 func NewRepository(db *gorm.DB) Repository {
 	return &repository{db: db}
 }

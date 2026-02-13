@@ -45,11 +45,14 @@ func (s *service) CreateUser(req *UserRequest) (*UserResponse, error) {
 
 // DeleteUser implements [Service].
 func (s *service) DeleteUser(id uint) error {
-	user, err := s.repo.FindByID(id)
+	rowsAffected, err := s.repo.Delete(&User{ID: id})
 	if err != nil {
+		return fmt.Errorf("failed to delete user with id '%d': %w", id, err)
+	}
+	if rowsAffected == 0 {
 		return fmt.Errorf("user with id '%d' not found", id)
 	}
-	return s.repo.Delete(user)
+	return nil
 }
 
 // GetAllUsers implements [Service].

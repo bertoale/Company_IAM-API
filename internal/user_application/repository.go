@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Repository interface {
 	Create(userApplication *UserApplication) error
-	Delete(userID, applicationID uint) error
+	Delete(userID, applicationID uint) (int64, error)
 	Exists(userID uint, applicationID uint) (bool, error)
 	FindByUserID(userID uint) ([]UserApplication, error)
 	FindByApplicationID(applicationID uint) ([]UserApplication, error)
@@ -32,11 +32,12 @@ func (r *repository) Create(userApplication *UserApplication) error {
 }
 
 // Delete implements [Repository].
-func (r *repository) Delete(userID, applicationID uint) error {
-	return r.db.
+func (r *repository) Delete(userID, applicationID uint) (int64, error) {
+	result := r.db.
 		Where("user_id = ? AND application_id = ?", userID, applicationID).
-		Delete(&UserApplication{}).
-		Error
+		Delete(&UserApplication{})
+
+	return result.RowsAffected, result.Error
 }
 
 // FindByApplicationID implements [Repository].

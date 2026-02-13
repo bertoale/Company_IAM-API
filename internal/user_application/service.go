@@ -58,11 +58,17 @@ func (s *service) Create(req *UserApplicationRequest) (*UserApplicationResponse,
 	// Delete implements [Service].
 }
 func (s *service) Delete(userID, ApplicationID uint) error {
-	return s.repository.Delete(
-		userID,
-		ApplicationID,
-	)
-}
+	rowsAffected, err := s.repository.Delete(userID, ApplicationID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user application: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("user application not found")
+	}
+
+	return nil
+}	
 
 func NewService(repository Repository) Service {
 	return &service{repository: repository}
