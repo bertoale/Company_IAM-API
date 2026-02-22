@@ -26,6 +26,11 @@ type Config struct {
 	NodeEnv    string // Environment mode (development/production)
 	CorsOrigin string // Allowed CORS origin (URL frontend)
 
+	//Redis configuration
+	RedisAddr string
+	RedisPass string
+	RedisDB int
+
 	// Mailjet email configuration
 	MailjetAPIKey    string // Mailjet API key
 	MailjetAPISecret string // Mailjet API secret

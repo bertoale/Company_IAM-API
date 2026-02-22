@@ -26,7 +26,6 @@ type service struct {
 type Claims struct {
 	ID           uint     `json:"id"`
 	Roles        []string `json:"roles"`
-	Permissions  []string `json:"permissions"`
 	Applications []string `json:"applications"`
 	jwt.RegisteredClaims
 }
@@ -40,7 +39,6 @@ func (s *service) GenerateToken(user *user.User, roles []string, permissions []s
 	claims := Claims{
 		ID:           user.ID,
 		Roles:        roles,
-		Permissions:  permissions,
 		Applications: applications,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
@@ -60,7 +58,6 @@ func (s *service) GenerateRefreshToken(user *user.User, roles []string, permissi
 	claims := Claims{
 		ID:           user.ID,
 		Roles:        roles,
-		Permissions:  permissions,
 		Applications: applications,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),

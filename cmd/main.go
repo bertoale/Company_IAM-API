@@ -4,6 +4,7 @@ import (
 	"company_iam/internal/application"
 	"company_iam/internal/auth"
 	"company_iam/internal/permission"
+	"company_iam/internal/rbac"
 	"company_iam/internal/role"
 	"company_iam/internal/role_permission"
 	"company_iam/internal/user"
@@ -12,6 +13,7 @@ import (
 
 	"company_iam/pkg/config"
 	"company_iam/pkg/middlewares"
+	"company_iam/pkg/redis"
 	"fmt"
 	"log"
 	"time"
@@ -77,48 +79,57 @@ func main() {
 	})
 
 	r.Use(middlewares.GinErrorHandler())
+	redisClient, err := redis.NewRedis(cfg.RedisAddr, cfg.RedisPass, cfg.RedisDB)
+if err != nil {
+	log.Fatalf("Redis not available: %v", err)
+}
 
 	//seeder
 	user.SeedAdminUser()
+
+	rbacRepo := rbac.NewRepository(db)
+	rbacService := rbac.NewService(rbacRepo, redisClient)
+
 	userRepo := user.NewRepository(db)
 	userService := user.NewService(userRepo)
 	userController := user.NewController(userService)
-	user.SetupRoutes(r, userController, cfg)
+	user.SetupRoutes(r, userController, cfg, rbacService)
 
 	authRepo := auth.NewRepository(db)
 	authService := auth.NewService(authRepo, cfg)
 	authController := auth.NewController(authService, cfg)
 	auth.SetupRoutes(r, authController, cfg)
 
+
 	roleRepo := role.NewRepository(db)
 	roleService := role.NewService(roleRepo)
 	roleController := role.NewController(roleService)
-	role.SetupRoutes(r, roleController, cfg)
+	role.SetupRoutes(r, roleController, cfg, rbacService)
 
 	permissionRepo := permission.NewRepository(db)
 	permissionService := permission.NewService(permissionRepo)
 	permissionController := permission.NewController(permissionService)
-	permission.SetupRoutes(r, permissionController, cfg)
+	permission.SetupRoutes(r, permissionController, cfg, rbacService)
 
 	applicationRepo := application.NewRepository(db)
 	applicationService := application.NewService(applicationRepo)
 	applicationController := application.NewController(applicationService)
-	application.SetupRoutes(r, applicationController, cfg)
+	application.SetupRoutes(r, applicationController, cfg, rbacService)
 
 	userRoleRepo := user_role.NewRepository(db)
 	userRoleService := user_role.NewService(userRoleRepo)
 	userRoleController := user_role.NewController(userRoleService)
-	user_role.SetupRoutes(r, userRoleController, cfg)
+	user_role.SetupRoutes(r, userRoleController, cfg, rbacService)
 
 	rolePermissionRepo := role_permission.NewRepository(db)
 	rolePermissionService := role_permission.NewService(rolePermissionRepo)
 	rolePermissionController := role_permission.NewController(rolePermissionService)
-	role_permission.SetupRoutes(r, rolePermissionController, cfg)
+	role_permission.SetupRoutes(r, rolePermissionController, cfg, rbacService)
 
 	userApplicationRepo := user_application.NewRepository(db)
 	userApplicationService := user_application.NewService(userApplicationRepo)
 	userApplicationController := user_application.NewController(userApplicationService)
-	user_application.SetupRoutes(r, userApplicationController, cfg)
+	user_application.SetupRoutes(r, userApplicationController, cfg, rbacService)
 
 	// 404 Not Found
 	r.NoRoute(func(c *gin.Context) {

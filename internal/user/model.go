@@ -34,13 +34,13 @@ type UserResponse struct {
 
 type UserRequest struct {
 	Email    string `json:"email"`
-	Username string `json:"username" `
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 type UserUpdateRequest struct {
 	Email    *string `json:"email"`
-	Username *string `json:"name" `
+	Username *string `json:"username"`
 	Status   *string `json:"status"`
 	Password *string `json:"password"`
 }

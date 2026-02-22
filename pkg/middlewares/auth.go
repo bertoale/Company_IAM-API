@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"company_iam/internal/rbac"
 	"company_iam/pkg/config"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,6 @@ import (
 type Claims struct {
 	ID           uint     `json:"id"`
 	Roles        []string `json:"roles"`
-	Permissions  []string `json:"permissions"`
 	Applications []string `json:"applications"`
 	jwt.RegisteredClaims
 }
@@ -59,45 +59,33 @@ func Authenticate(cfg *config.Config) gin.HandlerFunc {
 
 		// Set data ke context
 		c.Set("userID", claims.ID)
-		c.Set("roles", claims.Roles)
-		c.Set("permissions", claims.Permissions)
-		c.Set("applications", claims.Applications)
-
+c.Set("roles", claims.Roles)
+c.Set("applications", claims.Applications)
 		c.Next()
 	}
 }
 
 // AuthorizePermission: Middleware untuk cek permission
-func AuthorizePermission(permissions ...string) gin.HandlerFunc {
+func AuthorizePermission(rbacService *rbac.Service, required string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		permValue, exists := c.Get("permissions")
+
+		roleValue, exists := c.Get("roles")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "User belum terautentikasi."})
 			c.Abort()
 			return
 		}
-		userPerms, ok := permValue.([]string)
-		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Format permissions tidak valid."})
+
+		roles := roleValue.([]string)
+
+		has, err := rbacService.HasPermission(roles, required)
+		if err != nil || !has {
+			c.JSON(http.StatusForbidden, gin.H{"message": "Akses ditolak."})
 			c.Abort()
 			return
 		}
-		// Jika tidak ada batasan permission, lolos
-		if len(permissions) == 0 {
-			c.Next()
-			return
-		}
-		// Cek apakah user punya salah satu permission
-		for _, p := range permissions {
-			for _, up := range userPerms {
-				if p == up {
-					c.Next()
-					return
-				}
-			}
-		}
-		c.JSON(http.StatusForbidden, gin.H{"message": "Akses ditolak. Anda tidak memiliki permission yang sesuai."})
-		c.Abort()
+
+		c.Next()
 	}
 }
 
