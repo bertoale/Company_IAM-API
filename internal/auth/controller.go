@@ -56,13 +56,19 @@ func (ctrl *Controller) Login(c *gin.Context) {
 }
 
 func (ctrl *Controller) RefreshToken(c *gin.Context) {
-	var req RefreshTokenRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, "Invalid request payload")
-		return
+	// Read refresh_token from HttpOnly cookie first; fall back to JSON body
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil || refreshToken == "" {
+		// Try JSON body as fallback
+		var req RefreshTokenRequest
+		if bindErr := c.ShouldBindJSON(&req); bindErr != nil || req.RefreshToken == "" {
+			response.Error(c, http.StatusUnauthorized, "Refresh token not found")
+			return
+		}
+		refreshToken = req.RefreshToken
 	}
 
-	newToken, newRefreshToken, err := ctrl.service.RefreshToken(req.RefreshToken)
+	newToken, newRefreshToken, err := ctrl.service.RefreshToken(refreshToken)
 	if err != nil {
 		response.Error(c, http.StatusUnauthorized, "Invalid or expired refresh token: "+err.Error())
 		return
