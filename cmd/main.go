@@ -41,7 +41,7 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}, AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
-	rateLimiter := middlewares.NewRateLimiter(20, time.Minute) // 20 request per menit
+	rateLimiter := middlewares.NewRateLimiter(120, time.Minute) // 20 request per menit
 	r.Use(rateLimiter.Middleware())
 
 	// === Static Files untuk Upload ===

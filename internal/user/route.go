@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config, rbacService *rbac.Service) {
-	routeGroup := r.Group("/api/users")
+func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config, rbacService *rbac.Service) {	routeGroup := r.Group("/api/users")
 	routeGroup.Use(middlewares.Authenticate(cfg))
 	{
+		routeGroup.GET("/me", ctrl.GetCurrentUser) // ⚠️ harus di atas /:id
 		routeGroup.POST("/", middlewares.AuthorizePermission(rbacService, "iam.user.create"), ctrl.CreateUser)
 		routeGroup.GET("/", middlewares.AuthorizePermission(rbacService, "iam.user.read"), ctrl.GetAllUsers)
 		routeGroup.GET("/:id", middlewares.AuthorizePermission(rbacService, "iam.user.read"), ctrl.GetUserByID)

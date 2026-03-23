@@ -12,9 +12,9 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller, cfg *config.Config, rbacServic
 	routeGroup := r.Group("/api/user-applications")
 	routeGroup.Use(middlewares.Authenticate(cfg))
 	{
-		routeGroup.POST("/",middlewares.AuthorizePermission(rbacService, "iam.user-application.create"), ctrl.Create)
-		routeGroup.DELETE("/:id",middlewares.AuthorizePermission(rbacService, "iam.user-application.delete"), ctrl.Delete)
-		routeGroup.GET("/user/:id",middlewares.AuthorizePermission(rbacService, "iam.user-application.read"), ctrl.GetByUserID)
-		routeGroup.GET("/application/:id",middlewares.AuthorizePermission(rbacService, "iam.user-application.read"), ctrl.GetByApplicationID)
+		routeGroup.POST("/", middlewares.AuthorizePermission(rbacService, "iam.user-application.create"), ctrl.Create)
+		routeGroup.DELETE("/user/:userID/application/:applicationID", middlewares.AuthorizePermission(rbacService, "iam.user-application.delete"), ctrl.Delete)
+		routeGroup.GET("/user/:id", middlewares.AuthorizePermission(rbacService, "iam.user-application.read"), ctrl.GetByUserID)
+		routeGroup.GET("/application/:id", middlewares.AuthorizePermission(rbacService, "iam.user-application.read"), ctrl.GetByApplicationID)
 	}
 }

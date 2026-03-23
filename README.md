@@ -11,7 +11,9 @@ Project ini adalah backend service untuk sistem User & Identity Access Managemen
 - **Manajemen Permission**: CRUD permission dan pengaturan permission pada role.
 - **Manajemen Application**: CRUD aplikasi dan pengaturan aplikasi pada user.
 - **Relasi User-Role, Role-Permission, User-Application**: Mendukung multi-role, multi-permission, dan multi-application untuk setiap user.
-- **Autentikasi JWT**: Login menghasilkan JWT token yang berisi user, roles, permissions, dan applications.
+- **Autentikasi JWT**: Login menghasilkan JWT token yang berisi user, roles, dan applications.
+- **Permission Mapping**: Mengambil relasi permission dari role.
+- **Redis Cache**: Menyimpan data role permission pada memory.
 - **Rate Limiter**: Pembatasan request per IP untuk keamanan API.
 - **Error Handling & Response Standar**: Response API konsisten dan mudah diintegrasikan dengan frontend.
 

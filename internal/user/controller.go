@@ -90,6 +90,19 @@ func (ctrl *Controller) DeleteUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, "User deleted successfully", nil)
 }
 
+func (ctrl *Controller) GetCurrentUser(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+	res, err := ctrl.service.GetUserByID(userID.(uint))
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Failed to retrieve current user: "+err.Error())
+		return
+	}
+	response.Success(c, http.StatusOK, "Current user retrieved successfully", res)
+}
 func NewController(service Service) *Controller {
 	return &Controller{service: service}
 }

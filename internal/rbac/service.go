@@ -2,6 +2,7 @@ package rbac
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -22,45 +23,50 @@ func NewService(repo Repository, cache Cache) *Service {
 	}
 }
 
-func (s *Service) HasPermission(roleNames []string, required string) (bool, error) {
+func (s *Service) GetUserPermissions(userID uint) (map[string]struct{}, error) {
 
-	for _, role := range roleNames {
+	cacheKey := fmt.Sprintf("user:%d:permissions", userID)
 
-		cacheKey := "role:" + role
+	// 1️⃣ cek cache
+	cached, err := s.cache.Get(cacheKey)
+	if err == nil && cached != "" {
 
-		// 1️⃣ cek cache
-		cached, err := s.cache.Get(cacheKey)
-		if err == nil && cached != "" {
+		var perms []string
+		if err := json.Unmarshal([]byte(cached), &perms); err == nil {
 
-			var perms []string
-			if err := json.Unmarshal([]byte(cached), &perms); err == nil {
-				for _, p := range perms {
-					if p == required {
-						return true, nil
-					}
-				}
+			permMap := make(map[string]struct{}, len(perms))
+			for _, p := range perms {
+				permMap[p] = struct{}{}
 			}
 
-			// kalau tidak ketemu permission di cache, lanjut role berikutnya
-			continue
-		}
-
-		// 2️⃣ kalau tidak ada di cache → ambil per role
-		perms, err := s.repo.GetPermissionsByRoleNames([]string{role})
-		if err != nil {
-			return false, err
-		}
-
-		// simpan ke cache
-		bytes, _ := json.Marshal(perms)
-		_ = s.cache.Set(cacheKey, string(bytes), 10*time.Minute)
-
-		for _, p := range perms {
-			if p == required {
-				return true, nil
-			}
+			return permMap, nil
 		}
 	}
 
-	return false, nil
+	// 2️⃣ ambil dari DB (SEMUA SEKALIGUS)
+	perms, err := s.repo.GetPermissionsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3️⃣ simpan ke cache
+	bytes, _ := json.Marshal(perms)
+	_ = s.cache.Set(cacheKey, string(bytes), 10*time.Minute)
+
+	// 4️⃣ convert ke map
+	permMap := make(map[string]struct{}, len(perms))
+	for _, p := range perms {
+		permMap[p] = struct{}{}
+	}
+
+	return permMap, nil
+}
+func (s *Service) HasPermission(userID uint, required string) (bool, error) {
+	perms, err := s.GetUserPermissions(userID)
+	if err != nil {
+		return false, err
+	}
+
+	_, ok := perms[required]
+	return ok, nil
 }

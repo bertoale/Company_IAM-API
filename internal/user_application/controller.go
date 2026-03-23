@@ -35,12 +35,21 @@ func (ctrl *Controller) Create(c *gin.Context) {
 }
 
 func (ctrl *Controller) Delete(c *gin.Context) {
-	userApplicationID, err := ParseID(c)
+	userIDParam := c.Param("userID")
+	userID, err := strconv.ParseUint(userIDParam, 10, 32)
 	if err != nil {
-		response.Error(c, 400, "Invalid User-Application ID")
+		response.Error(c, 400, "Invalid userID parameter")
 		return
 	}
-	err = ctrl.service.Delete(userApplicationID, userApplicationID)
+
+	appIDParam := c.Param("applicationID")
+	applicationID, err := strconv.ParseUint(appIDParam, 10, 32)
+	if err != nil {
+		response.Error(c, 400, "Invalid applicationID parameter")
+		return
+	}
+
+	err = ctrl.service.Delete(uint(userID), uint(applicationID))
 	if err != nil {
 		response.Error(c, 500, "Failed to delete User-Application: "+err.Error())
 		return

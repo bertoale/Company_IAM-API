@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"net/http"
+	"fmt"
 	"strings"
 
 	"company_iam/internal/rbac"
@@ -12,76 +12,68 @@ import (
 )
 
 type Claims struct {
-	ID           uint     `json:"id"`
-	Roles        []string `json:"roles"`
-	Applications []string `json:"applications"`
+	ID uint `json:"id"`
 	jwt.RegisteredClaims
 }
-
 // AuthenticateV2: Middleware untuk autentikasi dengan payload baru
 func Authenticate(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		tokenString := c.GetHeader("Authorization")
-		if tokenString != "" && strings.HasPrefix(tokenString, "Bearer ") {
+
+		if strings.HasPrefix(tokenString, "Bearer ") {
 			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 		} else {
-			tokenString = c.GetString("token")
-			if tokenString == "" {
-				tokenString, _ = c.Cookie("token")
-			}
+			tokenString, _ = c.Cookie("token")
 		}
 
 		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Akses ditolak. Token tidak ditemukan."})
-			c.Abort()
+			c.AbortWithStatusJSON(401, gin.H{"message": "Token tidak ditemukan"})
 			return
 		}
 
 		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method")
+			}
+
 			return []byte(cfg.JWTSecret), nil
 		})
 
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Token tidak valid atau kadaluarsa."})
-			c.Abort()
+			c.AbortWithStatusJSON(401, gin.H{"message": "Token tidak valid"})
 			return
 		}
 
-		// Validasi user ada di database
-		db := config.GetDB()
-		var count int64
-		if err := db.Table("users").Where("id = ?", claims.ID).Count(&count).Error; err != nil || count == 0 {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "User tidak ditemukan."})
-			c.Abort()
-			return
-		}
-
-		// Set data ke context
+		// set userID ke context
 		c.Set("userID", claims.ID)
-c.Set("roles", claims.Roles)
-c.Set("applications", claims.Applications)
+
 		c.Next()
 	}
 }
 
 // AuthorizePermission: Middleware untuk cek permission
-func AuthorizePermission(rbacService *rbac.Service, required string) gin.HandlerFunc {
+func AuthorizePermission(s *rbac.Service, required string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		roleValue, exists := c.Get("roles")
+		userIDVal, exists := c.Get("userID")
 		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "User belum terautentikasi."})
-			c.Abort()
+			c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 			return
 		}
 
-		roles := roleValue.([]string)
+		userID := userIDVal.(uint)
 
-		has, err := rbacService.HasPermission(roles, required)
-		if err != nil || !has {
-			c.JSON(http.StatusForbidden, gin.H{"message": "Akses ditolak."})
-			c.Abort()
+		permMap, err := s.GetUserPermissions(userID)
+		if err != nil {
+			c.AbortWithStatusJSON(500, gin.H{"message": "Error permission"})
+			return
+		}
+
+		if _, ok := permMap[required]; !ok {
+			c.AbortWithStatusJSON(403, gin.H{"message": "Forbidden"})
 			return
 		}
 

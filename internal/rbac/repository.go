@@ -5,6 +5,8 @@ import "gorm.io/gorm"
 
 type Repository interface {
     GetPermissionsByRoleNames(roleNames []string) ([]string, error)
+    	GetPermissionsByUserID(userID uint) ([]string, error) // 🔥 tambah ini
+
 }
 
 type repository struct {
@@ -36,4 +38,18 @@ func (r *repository) GetPermissionsByRoleNames(roleNames []string) ([]string, er
     }
 
     return result, nil
+}
+func (r *repository) GetPermissionsByUserID(userID uint) ([]string, error) {
+	var perms []string
+
+	err := r.db.
+		Table("permissions").
+		Select("permissions.code").
+		Joins("JOIN role_permissions rp ON rp.permission_id = permissions.id").
+		Joins("JOIN roles r ON r.id = rp.role_id").
+		Joins("JOIN user_roles ur ON ur.role_id = r.id").
+		Where("ur.user_id = ?", userID).
+		Scan(&perms).Error
+
+	return perms, err
 }
